@@ -25,6 +25,7 @@ import {
   Shield,
   Cpu,
   LayoutDashboard,
+  Cloud,
 } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Provider, VisibleApps } from "@/types";
@@ -934,6 +935,9 @@ function App() {
             <UnifiedMcpPanel
               ref={mcpPanelRef}
               onOpenChange={() => setCurrentView("providers")}
+              currentApp={
+                sharedFeatureApp === "openclaw" ? "claude" : sharedFeatureApp
+              }
             />
           );
         case "agents":
@@ -1295,6 +1299,15 @@ function App() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => mcpPanelRef.current?.openSkynetCatalog()}
+                      className="hover:bg-black/5 dark:hover:bg-white/5"
+                    >
+                      <Cloud className="w-4 h-4 mr-2" />
+                      Skynet
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => mcpPanelRef.current?.openImport()}
                       className="hover:bg-black/5 dark:hover:bg-white/5"
                     >
@@ -1314,6 +1327,17 @@ function App() {
                 )}
                 {currentView === "skills" && (
                   <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        unifiedSkillsPanelRef.current?.openSkynetCatalog()
+                      }
+                      className="hover:bg-black/5 dark:hover:bg-white/5"
+                    >
+                      <Cloud className="w-4 h-4 mr-2" />
+                      Skynet
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
