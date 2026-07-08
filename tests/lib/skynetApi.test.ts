@@ -6,6 +6,7 @@ import {
   installSkynetSkillZip,
   listSkynetMcpServers,
   listSkynetSkills,
+  openSkynetLoginWindow,
 } from "@/lib/api/skynet";
 
 const fetchMock = vi.fn();
@@ -113,6 +114,16 @@ describe("skynet api client", () => {
     await expect(
       listSkynetSkills("https://tools-test.inshopline.com"),
     ).rejects.toBeInstanceOf(SkynetAuthRequiredError);
+  });
+
+  it("opens skynet login through the Rust command instead of webview IPC", async () => {
+    invokeMock.mockResolvedValueOnce(undefined);
+
+    await openSkynetLoginWindow("https://tools-test.inshopline.com/");
+
+    expect(invokeMock).toHaveBeenCalledWith("open_skynet_login_window", {
+      loginUrl: "https://tools-test.inshopline.com/skynet-service/devkit/user",
+    });
   });
 
   it("downloads skill zip bytes with browser credentials", async () => {

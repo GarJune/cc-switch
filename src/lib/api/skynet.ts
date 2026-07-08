@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api/core";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 import type { InstalledSkill } from "@/lib/api/skills";
 import type { AppId } from "@/lib/api/types";
@@ -45,40 +44,7 @@ export async function openSkynetLoginWindow(
   baseUrl = DEFAULT_SKYNET_BASE_URL,
 ): Promise<void> {
   const loginUrl = joinSkynetUrl(baseUrl, "/skynet-service/devkit/user");
-  const existing = await WebviewWindow.getByLabel("skynet-login");
-  if (existing) {
-    await existing.setFocus();
-    return;
-  }
-
-  const loginWindow = new WebviewWindow("skynet-login", {
-    url: loginUrl,
-    title: "Skynet Login",
-    width: 1100,
-    height: 760,
-    center: true,
-    resizable: true,
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    let settled = false;
-    const settle = (callback: () => void) => {
-      if (settled) return;
-      settled = true;
-      callback();
-    };
-
-    void loginWindow.once("tauri://error", (event) => {
-      settle(() => reject(new Error(String(event.payload))));
-    });
-    void loginWindow.once("tauri://created", async () => {
-      await loginWindow.setFocus().catch(() => undefined);
-      const unlisten = await loginWindow.onCloseRequested(() => {
-        void unlisten();
-        settle(resolve);
-      });
-    });
-  });
+  await invoke("open_skynet_login_window", { loginUrl });
 }
 
 function normalizeAuthError(response: Response): never {

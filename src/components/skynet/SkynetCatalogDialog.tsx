@@ -111,7 +111,6 @@ export function SkynetCatalogDialog({
   const openLogin = async () => {
     try {
       await openSkynetLoginWindow(baseUrl);
-      await activeQuery.refetch();
     } catch (error) {
       toast.error("Failed to open Skynet login", {
         description: String(error),

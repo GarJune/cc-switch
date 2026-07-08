@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tauri::State;
+use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder};
 
 use crate::app_config::{AppType, InstalledSkill, McpApps, McpServer};
 use crate::services::{McpService, SkillService};
@@ -129,6 +129,35 @@ pub fn map_skynet_mcp_server_for_test(
     current_app: &AppType,
 ) -> Result<McpServer, String> {
     map_skynet_mcp_server(payload, current_app)
+}
+
+#[tauri::command]
+pub async fn open_skynet_login_window(login_url: String, app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("skynet-login") {
+        let _ = window.unminimize();
+        let _ = window.show();
+        window
+            .set_focus()
+            .map_err(|e| format!("Failed to focus Skynet login window: {e}"))?;
+        return Ok(());
+    }
+
+    let parsed_url = url::Url::parse(&login_url)
+        .map_err(|e| format!("Invalid Skynet login URL '{login_url}': {e}"))?;
+    if !matches!(parsed_url.scheme(), "http" | "https") {
+        return Err("Skynet login URL must use http or https".to_string());
+    }
+
+    let window = WebviewWindowBuilder::new(&app, "skynet-login", WebviewUrl::External(parsed_url))
+        .title("Skynet Login")
+        .inner_size(1100.0, 760.0)
+        .center()
+        .resizable(true)
+        .build()
+        .map_err(|e| format!("Failed to create Skynet login window: {e}"))?;
+
+    let _ = window.set_focus();
+    Ok(())
 }
 
 #[tauri::command]

@@ -113,7 +113,7 @@ describe("SkynetCatalogDialog", () => {
     });
   });
 
-  it("opens skynet login inside the app and refreshes after the window closes", async () => {
+  it("opens skynet login inside the app without immediately refetching", async () => {
     const refetch = vi.fn();
     const { SkynetAuthRequiredError } = await import("@/lib/api/skynet");
     hookMocks.useSkynetSkills.mockReturnValue(
@@ -139,8 +139,8 @@ describe("SkynetCatalogDialog", () => {
       expect(skynetApiMocks.openSkynetLoginWindow).toHaveBeenCalledWith(
         "https://tools-test.inshopline.com",
       );
-      expect(refetch).toHaveBeenCalled();
     });
+    expect(refetch).not.toHaveBeenCalled();
   });
 
   it("shows a friendly message for browser-level load failures", () => {

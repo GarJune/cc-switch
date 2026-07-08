@@ -15,9 +15,7 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-is-maximized",
     "core:window:allow-close",
-    "core:window:allow-set-focus",
     "core:window:allow-set-decorations",
-    "core:webview:allow-create-webview-window",
     "process:allow-restart",
     "dialog:default"
   ]
