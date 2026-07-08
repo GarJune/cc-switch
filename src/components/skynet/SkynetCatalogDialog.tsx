@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ExternalLink, Loader2, RefreshCw, Search } from "lucide-react";
+import { Loader2, LogIn, RefreshCw, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { settingsApi } from "@/lib/api";
 import {
   DEFAULT_SKYNET_BASE_URL,
   SkynetAuthRequiredError,
+  openSkynetLoginWindow,
   type SkynetMcpServer,
   type SkynetSkill,
 } from "@/lib/api/skynet";
@@ -64,6 +64,13 @@ function matchesQuery(
   return haystack.includes(query.toLowerCase());
 }
 
+function formatSkynetError(error: unknown): string {
+  if (error instanceof TypeError) {
+    return "Unable to load Skynet catalog. Please log in inside this app, then retry.";
+  }
+  return String(error);
+}
+
 export function SkynetCatalogDialog({
   open,
   kind,
@@ -102,9 +109,14 @@ export function SkynetCatalogDialog({
   );
 
   const openLogin = async () => {
-    await settingsApi.openExternal(
-      `${baseUrl.replace(/\/+$/, "")}/skynet-service/devkit/user`,
-    );
+    try {
+      await openSkynetLoginWindow(baseUrl);
+      await activeQuery.refetch();
+    } catch (error) {
+      toast.error("Failed to open Skynet login", {
+        description: String(error),
+      });
+    }
   };
 
   const handleInstallSkill = async (skill: SkynetSkill) => {
@@ -173,7 +185,7 @@ export function SkynetCatalogDialog({
                 className="h-8 gap-1.5"
                 onClick={openLogin}
               >
-                <ExternalLink className="h-3.5 w-3.5" />
+                <LogIn className="h-3.5 w-3.5" />
                 Login
               </Button>
             </div>
@@ -209,14 +221,14 @@ export function SkynetCatalogDialog({
                   className="gap-1.5"
                   onClick={openLogin}
                 >
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <LogIn className="h-3.5 w-3.5" />
                   Open login
                 </Button>
               </div>
             ) : activeQuery.error ? (
               <div className="flex h-[220px] flex-col items-center justify-center gap-3 text-center">
                 <div className="max-w-md text-sm text-muted-foreground">
-                  {String(activeQuery.error)}
+                  {formatSkynetError(activeQuery.error)}
                 </div>
                 <Button
                   type="button"

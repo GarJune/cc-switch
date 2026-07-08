@@ -13,7 +13,9 @@ const hookMocks = vi.hoisted(() => ({
   installMcpMutateAsync: vi.fn(),
 }));
 
-const openExternalMock = vi.hoisted(() => vi.fn());
+const skynetApiMocks = vi.hoisted(() => ({
+  openSkynetLoginWindow: vi.fn(),
+}));
 
 vi.mock("@/hooks/useSkynetCatalog", () => ({
   useSkynetSkills: (...args: unknown[]) => hookMocks.useSkynetSkills(...args),
@@ -21,12 +23,6 @@ vi.mock("@/hooks/useSkynetCatalog", () => ({
     hookMocks.useSkynetMcpServers(...args),
   useInstallSkynetSkill: () => hookMocks.useInstallSkynetSkill(),
   useInstallSkynetMcpServer: () => hookMocks.useInstallSkynetMcpServer(),
-}));
-
-vi.mock("@/lib/api", () => ({
-  settingsApi: {
-    openExternal: (...args: unknown[]) => openExternalMock(...args),
-  },
 }));
 
 vi.mock("@/lib/api/skynet", () => {
@@ -40,6 +36,8 @@ vi.mock("@/lib/api/skynet", () => {
   return {
     DEFAULT_SKYNET_BASE_URL: "https://tools-test.inshopline.com",
     SkynetAuthRequiredError,
+    openSkynetLoginWindow: (...args: unknown[]) =>
+      skynetApiMocks.openSkynetLoginWindow(...args),
   };
 });
 
@@ -63,7 +61,9 @@ function baseQueryState(overrides: Record<string, unknown> = {}) {
 
 describe("SkynetCatalogDialog", () => {
   beforeEach(() => {
-    openExternalMock.mockReset().mockResolvedValue(undefined);
+    skynetApiMocks.openSkynetLoginWindow.mockReset().mockResolvedValue(
+      undefined,
+    );
     hookMocks.installSkillMutateAsync.mockReset().mockResolvedValue({});
     hookMocks.installMcpMutateAsync.mockReset().mockResolvedValue(undefined);
     hookMocks.useInstallSkynetSkill.mockReset().mockReturnValue({
@@ -113,11 +113,13 @@ describe("SkynetCatalogDialog", () => {
     });
   });
 
-  it("opens the skynet login target for auth-required errors", async () => {
+  it("opens skynet login inside the app and refreshes after the window closes", async () => {
+    const refetch = vi.fn();
     const { SkynetAuthRequiredError } = await import("@/lib/api/skynet");
     hookMocks.useSkynetSkills.mockReturnValue(
       baseQueryState({
         error: new SkynetAuthRequiredError(),
+        refetch,
       }),
     );
 
@@ -133,9 +135,37 @@ describe("SkynetCatalogDialog", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Open login" }));
 
-    expect(openExternalMock).toHaveBeenCalledWith(
-      "https://tools-test.inshopline.com/skynet-service/devkit/user",
+    await waitFor(() => {
+      expect(skynetApiMocks.openSkynetLoginWindow).toHaveBeenCalledWith(
+        "https://tools-test.inshopline.com",
+      );
+      expect(refetch).toHaveBeenCalled();
+    });
+  });
+
+  it("shows a friendly message for browser-level load failures", () => {
+    hookMocks.useSkynetSkills.mockReturnValue(
+      baseQueryState({
+        error: new TypeError("Load failed"),
+      }),
     );
+
+    render(
+      <SkynetCatalogDialog
+        open
+        kind="skills"
+        currentApp="codex"
+        baseUrl="https://tools-test.inshopline.com"
+        onOpenChange={() => {}}
+      />,
+    );
+
+    expect(
+      screen.getByText(/Unable to load Skynet catalog/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("TypeError: Load failed"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders mcp servers and installs the selected server", async () => {
