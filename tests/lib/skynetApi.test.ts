@@ -116,13 +116,13 @@ describe("skynet api client", () => {
     ).rejects.toBeInstanceOf(SkynetAuthRequiredError);
   });
 
-  it("opens skynet login through the Rust command instead of webview IPC", async () => {
+  it("opens the skynet base page through the Rust command instead of the user API", async () => {
     invokeMock.mockResolvedValueOnce(undefined);
 
     await openSkynetLoginWindow("https://tools-test.inshopline.com/");
 
     expect(invokeMock).toHaveBeenCalledWith("open_skynet_login_window", {
-      loginUrl: "https://tools-test.inshopline.com/skynet-service/devkit/user",
+      loginUrl: "https://tools-test.inshopline.com",
     });
   });
 

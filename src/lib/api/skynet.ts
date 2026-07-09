@@ -43,7 +43,7 @@ function joinSkynetUrl(baseUrl: string, path: string): string {
 export async function openSkynetLoginWindow(
   baseUrl = DEFAULT_SKYNET_BASE_URL,
 ): Promise<void> {
-  const loginUrl = joinSkynetUrl(baseUrl, "/skynet-service/devkit/user");
+  const loginUrl = baseUrl.replace(/\/+$/, "");
   await invoke("open_skynet_login_window", { loginUrl });
 }
 
