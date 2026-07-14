@@ -22,6 +22,10 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("@/components/skynet/SkynetCatalogDialog", () => ({
+  SkynetCatalogDialog: () => null,
+}));
+
 vi.mock("@/hooks/useSkills", () => ({
   useInstalledSkills: () => ({
     data: [],

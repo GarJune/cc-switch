@@ -21,23 +21,27 @@ import { MCP_APP_IDS } from "@/config/appConfig";
 import { AppCountBar } from "@/components/common/AppCountBar";
 import { AppToggleGroup } from "@/components/common/AppToggleGroup";
 import { ListItemRow } from "@/components/common/ListItemRow";
+import { SkynetCatalogDialog } from "@/components/skynet/SkynetCatalogDialog";
 
 interface UnifiedMcpPanelProps {
   onOpenChange: (open: boolean) => void;
+  currentApp: AppId;
 }
 
 export interface UnifiedMcpPanelHandle {
   openAdd: () => void;
   openImport: () => void;
+  openSkynetCatalog: () => void;
 }
 
 const UnifiedMcpPanel = React.forwardRef<
   UnifiedMcpPanelHandle,
   UnifiedMcpPanelProps
->(({ onOpenChange: _onOpenChange }, ref) => {
+>(({ onOpenChange: _onOpenChange, currentApp }, ref) => {
   const { t } = useTranslation();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [skynetCatalogOpen, setSkynetCatalogOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -115,6 +119,7 @@ const UnifiedMcpPanel = React.forwardRef<
   React.useImperativeHandle(ref, () => ({
     openAdd: handleAdd,
     openImport: handleImport,
+    openSkynetCatalog: () => setSkynetCatalogOpen(true),
   }));
 
   const handleDelete = (id: string) => {
@@ -208,6 +213,13 @@ const UnifiedMcpPanel = React.forwardRef<
           onCancel={() => setConfirmDialog(null)}
         />
       )}
+
+      <SkynetCatalogDialog
+        open={skynetCatalogOpen}
+        kind="mcp"
+        currentApp={currentApp}
+        onOpenChange={setSkynetCatalogOpen}
+      />
     </div>
   );
 });

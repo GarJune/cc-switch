@@ -43,6 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SkynetCatalogDialog } from "@/components/skynet/SkynetCatalogDialog";
 
 interface UnifiedSkillsPanelProps {
   onOpenDiscovery: () => void;
@@ -54,6 +55,7 @@ export interface UnifiedSkillsPanelHandle {
   openImport: () => void;
   openInstallFromZip: () => void;
   openRestoreFromBackup: () => void;
+  openSkynetCatalog: () => void;
   checkUpdates: () => void;
 }
 
@@ -79,6 +81,7 @@ const UnifiedSkillsPanel = React.forwardRef<
   } | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [skynetCatalogOpen, setSkynetCatalogOpen] = useState(false);
 
   const { data: skills, isLoading } = useInstalledSkills();
   const {
@@ -342,6 +345,7 @@ const UnifiedSkillsPanel = React.forwardRef<
     openImport: handleOpenImport,
     openInstallFromZip: handleInstallFromZip,
     openRestoreFromBackup: handleOpenRestoreFromBackup,
+    openSkynetCatalog: () => setSkynetCatalogOpen(true),
     checkUpdates: handleCheckUpdates,
   }));
 
@@ -471,6 +475,13 @@ const UnifiedSkillsPanel = React.forwardRef<
         onRestore={handleRestoreFromBackup}
         onClose={() => setRestoreDialogOpen(false)}
         open={restoreDialogOpen}
+      />
+
+      <SkynetCatalogDialog
+        open={skynetCatalogOpen}
+        kind="skills"
+        currentApp={currentApp}
+        onOpenChange={setSkynetCatalogOpen}
       />
     </div>
   );
